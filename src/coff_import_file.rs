@@ -11,7 +11,7 @@ use std::str::from_utf8;
 
 use object::pe::{
     ImageAuxSymbolSection, ImageFileHeader, ImageImportDescriptor, ImageRelocation,
-    ImageSectionHeader, ImageSymbol, ImportObjectHeader, IMAGE_COMDAT_SELECT_ANY,
+    ImageSectionHeader, ImageSymbol, ImportObjectHeader, IMAGE_COMDAT_SELECT_SAME_SIZE,
     IMAGE_FILE_32BIT_MACHINE, IMAGE_REL_AMD64_ADDR32NB, IMAGE_REL_ARM64_ADDR32NB,
     IMAGE_REL_ARM_ADDR32NB, IMAGE_REL_I386_DIR32NB, IMAGE_SCN_ALIGN_2BYTES, IMAGE_SCN_ALIGN_4BYTES,
     IMAGE_SCN_ALIGN_8BYTES, IMAGE_SCN_CNT_INITIALIZED_DATA, IMAGE_SCN_LNK_COMDAT,
@@ -540,7 +540,7 @@ impl<'a> ObjectFactory<'a> {
                 number_of_relocations: u16!(0),
                 number_of_linenumbers: u16!(0),
                 check_sum: u32!(0),
-                selection: IMAGE_COMDAT_SELECT_ANY,
+                selection: IMAGE_COMDAT_SELECT_SAME_SIZE,
                 number: u16!(0),
                 reserved: 0,
                 high_number: u16!(0),
