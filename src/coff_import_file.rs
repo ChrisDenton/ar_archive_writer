@@ -17,7 +17,8 @@ use object::pe::{
     IMAGE_SCN_ALIGN_8BYTES, IMAGE_SCN_CNT_INITIALIZED_DATA, IMAGE_SCN_LNK_COMDAT,
     IMAGE_SCN_LNK_INFO, IMAGE_SCN_LNK_REMOVE, IMAGE_SCN_MEM_READ, IMAGE_SCN_MEM_WRITE,
     IMAGE_SYM_CLASS_EXTERNAL, IMAGE_SYM_CLASS_NULL, IMAGE_SYM_CLASS_SECTION,
-    IMAGE_SYM_CLASS_STATIC, IMAGE_SYM_CLASS_WEAK_EXTERNAL, IMAGE_WEAK_EXTERN_SEARCH_ALIAS,
+    IMAGE_SYM_CLASS_STATIC, IMAGE_SYM_CLASS_WEAK_EXTERNAL, IMAGE_SYM_TYPE_NULL,
+    IMAGE_WEAK_EXTERN_SEARCH_ALIAS,
 };
 use object::pod::bytes_of;
 
@@ -531,7 +532,7 @@ impl<'a> ObjectFactory<'a> {
                 name: *b".idata$3",
                 value: u32!(0),
                 section_number: u16!(1),
-                typ: u16!(0),
+                typ: u16!(IMAGE_SYM_TYPE_NULL),
                 storage_class: IMAGE_SYM_CLASS_STATIC,
                 number_of_aux_symbols: 1,
             };
@@ -541,7 +542,7 @@ impl<'a> ObjectFactory<'a> {
                 number_of_linenumbers: u16!(0),
                 check_sum: u32!(0),
                 selection: IMAGE_COMDAT_SELECT_SAME_SIZE,
-                number: u16!(0),
+                number: u16!(1),
                 reserved: 0,
                 high_number: u16!(0),
             };
