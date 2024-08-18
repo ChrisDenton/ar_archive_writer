@@ -26,6 +26,7 @@ use crate::{write_archive_to_stream, ArchiveKind, NewArchiveMember, DEFAULT_OBJE
 
 pub(crate) const IMPORT_DESCRIPTOR_PREFIX: &[u8] = b"__IMPORT_DESCRIPTOR_";
 pub(crate) const NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME: &[u8] = b"__NULL_IMPORT_DESCRIPTOR";
+pub(crate) const NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME_PREFIX: &[u8] = b"__NULL_IMPORT_DESCRIPTOR_";
 pub(crate) const NULL_THUNK_DATA_PREFIX: &[u8] = b"\x7f";
 pub(crate) const NULL_THUNK_DATA_SUFFIX: &[u8] = b"_NULL_THUNK_DATA";
 
@@ -208,10 +209,11 @@ struct ObjectFactory<'a> {
     import_name: &'a str,
     import_descriptor_symbol_name: Vec<u8>,
     null_thunk_symbol_name: Vec<u8>,
+    null_import_descriptor_symbol_name: Vec<u8>,
 }
 
 impl<'a> ObjectFactory<'a> {
-    fn new(s: &'a str, m: MachineTypes) -> Result<Self> {
+    fn new(s: &'a str, m: MachineTypes, whole_archive_compat: bool) -> Result<Self> {
         let import_as_path = PathBuf::from(s);
         let library = import_as_path
             .file_stem()
@@ -238,6 +240,15 @@ impl<'a> ObjectFactory<'a> {
                 .chain(NULL_THUNK_DATA_SUFFIX)
                 .copied()
                 .collect(),
+            null_import_descriptor_symbol_name: if whole_archive_compat {
+                NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME_PREFIX
+                    .iter()
+                    .chain(library)
+                    .copied()
+                    .collect()
+            } else {
+                NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME.into()
+            },
         })
     }
 
@@ -438,7 +449,7 @@ impl<'a> ObjectFactory<'a> {
             size_of::<u32>()
                 + self.import_descriptor_symbol_name.len()
                 + 1
-                + NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME.len()
+                + self.null_import_descriptor_symbol_name.len()
                 + 1,
         );
         buffer.write_all(bytes_of(&symbol_table))?;
@@ -448,7 +459,7 @@ impl<'a> ObjectFactory<'a> {
             &mut buffer,
             &[
                 &self.import_descriptor_symbol_name,
-                NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME,
+                &self.null_import_descriptor_symbol_name,
                 &self.null_thunk_symbol_name,
             ],
         )?;
@@ -533,7 +544,7 @@ impl<'a> ObjectFactory<'a> {
         buffer.write_all(bytes_of(&symbol_table))?;
 
         // String Table
-        write_string_table(&mut buffer, &[NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME])?;
+        write_string_table(&mut buffer, &[&self.null_import_descriptor_symbol_name])?;
 
         Ok(NewArchiveMember::new(
             buffer.into_boxed_slice(),
@@ -826,6 +837,7 @@ pub fn write_import_library<W: Write + Seek>(
     exports: &[COFFShortExport],
     machine: MachineTypes,
     mingw: bool,
+    whole_archive_compat: bool,
 ) -> Result<()> {
     let native_machine = if machine == MachineTypes::ARM64EC {
         MachineTypes::ARM64
@@ -833,7 +845,7 @@ pub fn write_import_library<W: Write + Seek>(
         machine
     };
 
-    let of = ObjectFactory::new(import_name, native_machine)?;
+    let of = ObjectFactory::new(import_name, native_machine, whole_archive_compat)?;
     let mut members = Vec::new();
 
     members.push(of.create_import_descriptor()?);

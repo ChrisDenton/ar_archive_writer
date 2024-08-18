@@ -542,7 +542,7 @@ fn write_ec_symbols<W: Write + Seek>(w: &mut W, sym_map: &SymMap) -> io::Result<
 
 fn is_import_descriptor(name: &[u8]) -> bool {
     name.starts_with(coff_import_file::IMPORT_DESCRIPTOR_PREFIX)
-        || name == coff_import_file::NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME
+        || name.starts_with(coff_import_file::NULL_IMPORT_DESCRIPTOR_SYMBOL_NAME)
         || (name.starts_with(coff_import_file::NULL_THUNK_DATA_PREFIX)
             && name.ends_with(coff_import_file::NULL_THUNK_DATA_SUFFIX))
 }
